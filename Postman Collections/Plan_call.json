@@ -1,0 +1,152 @@
+{
+	"info": {
+		"_postman_id": "ee0957a2-52eb-4022-b80f-eb50ab0df8a3",
+		"name": "Plan Call",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "da09da8b-4d20-4e02-9cc3-280d8bb10eed",
+						"exec": [
+							"//copied from another test of the plan call - need to update",
+							"",
+							"//MTA-51 https://camsys.atlassian.net/browse/MTA-51",
+							"//Plan call is giving inconsistent results",
+							"//When sending two identical trip requests, just seconds apart, the plan call will return different results with later departure times",
+							"//Set the date to a business day in the future. Trip start times with either be at T13:24 or T13:53:00 and its completely inconsistent. The transit time is also different.",
+							"",
+							"var jsonData = pm.response.json();",
+							"var itinArray = jsonData.plan.itineraries;",
+							"",
+							"if (itinArray.length > 0) {",
+							"//iterate through this and check all",
+							"for (let i = 0; i < itinArray.length; i++) {",
+							"    pm.test(\"Trip \" +i+ \" Total time is less than 40 minutes\", ()=> {",
+							"        pm.expect(itinArray[i].duration).to.be.below(2400);",
+							"    });",
+							"    pm.test(\"Trip \" +i+ \" Walking is less than 15 minutes\", ()=> {",
+							"        pm.expect(itinArray[i].walkTime).to.be.below(900);",
+							"    });",
+							"    pm.test(\"Trip \" +i+ \" Transit time is less than 35 minutes\", ()=> {",
+							"        pm.expect(itinArray[i].transitTime).to.be.below(2100);",
+							"    });",
+							"    pm.test(\"Trip \" +i+ \" Wait time is less than 10 minutes\", ()=> {",
+							"        pm.expect(itinArray[i].waitingTime).to.be.below(600);",
+							"    });",
+							"    pm.test(\"Trip \" +i+ \" has 1 or less transfers\", ()=> {",
+							"        pm.expect(itinArray[i].transfers).to.be.below(2);",
+							"    });",
+							"    //Evaluate each leg in the itinerary. Generally 0=walk, 1=transit, 2=walk, 3=transit, 4=walk",
+							"    pm.test(\"Leg 0 is walking\", ()=> {",
+							"        pm.expect(itinArray[i].legs[0].mode).to.eql(\"WALK\");",
+							"    });",
+							"    pm.test(\"Leg 1 is transit\", ()=> {",
+							"        pm.expect(itinArray[i].legs[1].mode).to.be.oneOf([\"SUBWAY\",\"BUS\"]);",
+							"    });",
+							"    pm.test(\"Leg 1 is Subway B or D\", ()=> {",
+							"        pm.expect(itinArray[i].legs[1].routeId).to.be.oneOf([\"MTASBWY:D\",\"MTASBWY:B\"]);",
+							"    });",
+							"    pm.test(\"Leg 2 is walking\", ()=> {",
+							"        pm.expect(itinArray[i].legs[2].mode).to.eql(\"WALK\");",
+							"    });",
+							"    pm.test(\"Leg 3 is transit\", ()=> {",
+							"        pm.expect(itinArray[i].legs[3].mode).to.be.oneOf([\"SUBWAY\",\"BUS\"]);",
+							"    });",
+							"    pm.test(\"Leg 3 is Subway 2,3,4 or 5\", ()=> {",
+							"        pm.expect(itinArray[i].legs[3].routeId).to.be.oneOf([\"MTASBWY:5\",\"MTASBWY:4\",\"MTASBWY:3\",\"MTASBWY:2\",\"MTA:B48\"]);",
+							"    });",
+							"    pm.test(\"Leg 4 is walking\", ()=> {",
+							"        pm.expect(itinArray[i].legs[4].mode).to.eql(\"WALK\");",
+							"    });",
+							"",
+							"",
+							"}",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "9f6ea487-fffa-4c8c-a980-458c53329d2b",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://hub-mta-dev.camsys-apps.com/routing/v2/routers/default/plan?key=OBA&mode=WALK,TRANSIT&arriveBy=false&fromPlace=MTA:302766&toPlace=MTA:450202&date=12/11/2023&time=8:04AM&wheelchair=false&hint=QUICK&bannedRouteTypes=0,1,2,4&numItineraries=1&showIntermediateStops=true",
+					"protocol": "https",
+					"host": [
+						"hub-mta-dev",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"routing",
+						"v2",
+						"routers",
+						"default",
+						"plan"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						},
+						{
+							"key": "mode",
+							"value": "WALK,TRANSIT"
+						},
+						{
+							"key": "arriveBy",
+							"value": "false"
+						},
+						{
+							"key": "fromPlace",
+							"value": "MTA:302766"
+						},
+						{
+							"key": "toPlace",
+							"value": "MTA:450202"
+						},
+						{
+							"key": "date",
+							"value": "12/11/2023"
+						},
+						{
+							"key": "time",
+							"value": "8:04AM"
+						},
+						{
+							"key": "wheelchair",
+							"value": "false"
+						},
+						{
+							"key": "hint",
+							"value": "QUICK"
+						},
+						{
+							"key": "bannedRouteTypes",
+							"value": "0,1,2,4"
+						},
+						{
+							"key": "numItineraries",
+							"value": "1"
+						},
+						{
+							"key": "showIntermediateStops",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
