@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "3ad647d9-6dea-4d05-bdd6-d3c276b83b69",
+		"name": "Wrong Way Concurrencies Headsign from file",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "wrongWayConcurrencies Headsign",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e48c24c9-1e5f-447b-accc-ceba9996b0df",
+						"exec": [
+							"//Run this test with file WrongWayConcurrencies.csv",
+							"//https://camsys.sharepoint.com/:x:/s/Software/QA/Postman ...",
+							"//HEIDE FILL THIS IN",
+							"//Save the file as .csv",
+							"//Run Collection and run this test (Headsign) and then run Last Stop. It hangs if I try and run them together.",
+							"//This test will use each stop and validate that the A/D for stop API is returning the expected",
+							"// Headsign",
+							"",
+							"var jsonData = pm.response.json();",
+							"var arrDeptArray = jsonData.data.entry.arrivalsAndDepartures;",
+							"var stopId = pm.iterationData.get(\"stopId\");",
+							"var stopName = pm.iterationData.get(\"stopName\").toString();",
+							"var routeId = pm.iterationData.get(\"routeId\");",
+							"var lastStop = pm.iterationData.get(\"lastStop\").toString();",
+							"var headsign = pm.iterationData.get(\"headsign\").toString();",
+							"var direction = pm.iterationData.get(\"directionId\");",
+							"",
+							"console.log(\"Test stopId \" +stopId+ \" stopName: \" +stopName+ \" routeId: \" + routeId + \" lastStop: \" + lastStop + \" headsign: \" +headsign + \" dir: \" +direction);",
+							"",
+							"if (arrDeptArray.length > 0) {",
+							"//iterate through this and check all",
+							"for (let i = 0; i < arrDeptArray.length; i++) {",
+							"    pm.test(\"Trip \" +i+ \" StopId matches\", ()=> {",
+							"        pm.expect(arrDeptArray[i].stopId).to.eql(stopId);",
+							"        });",
+							"        ",
+							"    pm.test(\"Trip \" +i+ \" headsign matches\", function () {",
+							"        pm.expect(arrDeptArray[i].tripHeadsign).to.eql(headsign);",
+							"        });",
+							"",
+							"    console.log(\"Trip \"+i+ \" \" + arrDeptArray[i].stopId + \" \" +arrDeptArray[i].tripHeadsign);",
+							"}",
+							"}",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c361116f-b7f6-4eea-aaba-76c49ab9e9b3",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "e12b3892-d10e-44d3-adfb-2272054e7233",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://hub-mta-dev.camsys-apps.com/transit-services/v2/arrivals-and-departures-for-stop/{{stopId}}.json?key=OBA",
+					"protocol": "https",
+					"host": [
+						"hub-mta-dev",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"transit-services",
+						"v2",
+						"arrivals-and-departures-for-stop",
+						"{{stopId}}.json"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
