@@ -1,0 +1,622 @@
+{
+	"info": {
+		"_postman_id": "63f5ae79-4240-48f2-bf46-c4e13ee3225e",
+		"name": "ArrDep for stop examples using file variables",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Subway A48N from file",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "603ca5c0-283f-4c52-82a1-52db1bc172f6",
+						"exec": [
+							"//Works with data from TestcsvInput1.csv only",
+							"// the stop id is hardocded in the GET statement above",
+							"",
+							"var jsonData = pm.response.json();",
+							"var arrDeptArray = jsonData.data.entry.arrivalsAndDepartures;",
+							"var stopId = pm.iterationData.get(\"stopId\");",
+							"",
+							"if (arrDeptArray.length > 0) {",
+							"//iterate through this and check all",
+							"for (let i = 0; i < arrDeptArray.length; i++) {",
+							"    pm.test(\"Trip \" +i+ \" Arrival Data is realtime OR trip is canceled\", ()=> {",
+							"        if (arrDeptArray[i].predicted==true) {",
+							"            pm.expect(arrDeptArray[i].status).not.equal('CANCELED');",
+							"        }",
+							"        if (arrDeptArray[i].predicted==false) {",
+							"            pm.expect(arrDeptArray[i].status).equal('CANCELED');",
+							"        }",
+							"    });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" stop is \" +stopId, function () {",
+							"        pm.expect(arrDeptArray[i].stopId).to.eql(stopId);",
+							"        });",
+							"}",
+							"",
+							"var tripNum;",
+							"var today = new Date();",
+							"var realtimeTrips=0;",
+							"var canceledTrips=0;",
+							"console.log(today);",
+							"console.log(\"Stop: \"+arrDeptArray[0].stopId+\" headsign: \"+arrDeptArray[0].tripHeadsign);",
+							"",
+							"for (let i = 0; i < arrDeptArray.length; i++) {   ",
+							"   var arrivalTime;",
+							"   var utcSeconds;",
+							"   var tripDate = new Date(0); ",
+							"   var tripTime;",
+							"   var tripId = arrDeptArray[i].tripId;",
+							"   var route = arrDeptArray[i].routeShortName;",
+							"   var status = arrDeptArray[i].status;",
+							"   ",
+							"   if(arrDeptArray[i].predicted == true) {",
+							"        realtimeTrips = realtimeTrips+1;",
+							"    }",
+							"    if(arrDeptArray[i].status==='CANCELED'){",
+							"        canceledTrips = canceledTrips+1;",
+							"    }",
+							"",
+							"    //test if the trip is using realtime data (predicted == true)",
+							"    if (arrDeptArray[i].predicted == true){",
+							"        if (arrDeptArray[i].predictedArrivalTime > 0) {",
+							"            arrivalTime = ",
+							"                arrDeptArray[i].predictedArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"Trip \"+i+\" predictedArrival: \"+tripTime+\" trip: \" +route+\":\"+tripId);",
+							"            }",
+							"        else {",
+							"            if (arrDeptArray[i].scheduledArrivalTime > 0) {",
+							"            arrivalTime = arrDeptArray[i].scheduledArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"PREDICTED TRUE BUT NO PREDICTED ARRIVAL TIME!\");",
+							"            console.log(\"Trip \"+i+\" scheduledArrival: \"+tripTime+\" trip: \"+route+\":\"+tripId);",
+							"        }}",
+							"    }",
+							"else {",
+							"        if (arrDeptArray[i].status == \"CANCELED\")",
+							"        console.log(\"No realtime. Trip\"+i+\" is canceled\");",
+							"        else {",
+							"            console.log(\"No realtime and Trip\"+i+\"is NOT canceled\"+\" trip: \"+route+\":\"+tripId);",
+							"        }",
+							"    }",
+							"}}",
+							"else {",
+							"    console.log(\"No Arrivals/Departures returned :(\");",
+							"}",
+							"console.log(\"Total trips: \" +arrDeptArray.length+ \" Realtime: \" +realtimeTrips+ \" Canceled: \" +canceledTrips);",
+							"",
+							"pm.test(\"Most trips are realtime\", function() {",
+							"    pm.expect(realtimeTrips).to.be.greaterThan(arrDeptArray.length/2);",
+							"});",
+							"",
+							"console.log(\"**************** end\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6802ef1a-afb2-4d4d-b42d-d86d0aa90425",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "0d61fbaa-b447-4eb5-9b85-ecd50642ce38",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://hub-mta-{{env}}.camsys-apps.com/transit-services/v2/arrivals-and-departures-for-stop/MTASBWY_A48N.json?key=OBA",
+					"protocol": "https",
+					"host": [
+						"hub-mta-{{env}}",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"transit-services",
+						"v2",
+						"arrivals-and-departures-for-stop",
+						"MTASBWY_A48N.json"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ArrDep from file 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "603ca5c0-283f-4c52-82a1-52db1bc172f6",
+						"exec": [
+							"//Works with data from either file: ",
+							"// TestcsvInput1.csv or TestcsvInput.csv",
+							"//1 is a file with one entry, the second has a whole list of stops",
+							"//this test is validating that the trips are realtime",
+							"",
+							"var jsonData = pm.response.json();",
+							"var arrDeptArray = jsonData.data.entry.arrivalsAndDepartures;",
+							"var stopId = pm.iterationData.get(\"stopId\");",
+							"",
+							"if (arrDeptArray.length > 0) {",
+							"//iterate through this and check all",
+							"for (let i = 0; i < arrDeptArray.length; i++) {",
+							"    pm.test(\"Trip \" +i+ \" Arrival Data is realtime OR trip is canceled\", ()=> {",
+							"        if (arrDeptArray[i].predicted==true) {",
+							"            pm.expect(arrDeptArray[i].status).not.equal('CANCELED');",
+							"        }",
+							"        if (arrDeptArray[i].predicted==false) {",
+							"            pm.expect(arrDeptArray[i].status).equal('CANCELED');",
+							"        }",
+							"    });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" stop is \" +stopId, function () {",
+							"        pm.expect(arrDeptArray[i].stopId).to.eql(stopId);",
+							"        });",
+							"}",
+							"",
+							"var tripNum;",
+							"var today = new Date();",
+							"var realtimeTrips=0;",
+							"var canceledTrips=0;",
+							"console.log(today);",
+							"console.log(\"Stop: \"+arrDeptArray[0].stopId+\" headsign: \"+arrDeptArray[0].tripHeadsign);",
+							"",
+							"for (let i = 0; i < arrDeptArray.length; i++) {   ",
+							"   var arrivalTime;",
+							"   var utcSeconds;",
+							"   var tripDate = new Date(0); ",
+							"   var tripTime;",
+							"   var tripId = arrDeptArray[i].tripId;",
+							"   var route = arrDeptArray[i].routeShortName;",
+							"   var status = arrDeptArray[i].status;",
+							"   ",
+							"   if(arrDeptArray[i].predicted == true) {",
+							"        realtimeTrips = realtimeTrips+1;",
+							"    }",
+							"    if(arrDeptArray[i].status==='CANCELED'){",
+							"        canceledTrips = canceledTrips+1;",
+							"    }",
+							"",
+							"    //test if the trip is using realtime data (predicted == true)",
+							"    if (arrDeptArray[i].predicted == true){",
+							"        if (arrDeptArray[i].predictedArrivalTime > 0) {",
+							"            arrivalTime = ",
+							"                arrDeptArray[i].predictedArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"Trip \"+i+\" predictedArrival: \"+tripTime+\" trip: \" +route+\":\"+tripId);",
+							"            }",
+							"        else {",
+							"            if (arrDeptArray[i].scheduledArrivalTime > 0) {",
+							"            arrivalTime = arrDeptArray[i].scheduledArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"PREDICTED TRUE BUT NO PREDICTED ARRIVAL TIME!\");",
+							"            console.log(\"Trip \"+i+\" scheduledArrival: \"+tripTime+\" trip: \"+route+\":\"+tripId);",
+							"        }}",
+							"    }",
+							"    else {",
+							"        console.log(\"No realtime. Trip \" +i+ \" is status: \" + status + \" trip: \"+route+\":\"+tripId);",
+							"    }",
+							"}}",
+							"else {",
+							"    console.log(\"No Arrivals/Departures returned :(\");",
+							"}",
+							"console.log(\"Total trips: \" +arrDeptArray.length+ \" Realtime: \" +realtimeTrips+ \" Canceled: \" +canceledTrips);",
+							"",
+							"pm.test(\"Most trips are realtime\", function() {",
+							"    pm.expect(realtimeTrips).to.be.greaterThan(arrDeptArray.length/2);",
+							"});",
+							"",
+							"console.log(\"**************** end\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6802ef1a-afb2-4d4d-b42d-d86d0aa90425",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "ffb5389f-4780-4280-a7fd-3c8083d70278",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://hub-mta-{{env}}.camsys-apps.com/transit-services/v2/arrivals-and-departures-for-stop/{{stopId}}.json?key=OBA",
+					"protocol": "https",
+					"host": [
+						"hub-mta-{{env}}",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"transit-services",
+						"v2",
+						"arrivals-and-departures-for-stop",
+						"{{stopId}}.json"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ArrDep from file 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "603ca5c0-283f-4c52-82a1-52db1bc172f6",
+						"exec": [
+							"//Works with data from TestcsvInput1.csv only",
+							"//",
+							"//The file has a list of stops",
+							"//this test is validating that the trips are realtime",
+							"//this test also validates the stop, destination and short name",
+							"",
+							"var jsonData = pm.response.json();",
+							"var arrDeptArray = jsonData.data.entry.arrivalsAndDepartures;",
+							"var stopId = pm.iterationData.get(\"stopId\");",
+							"var route1 = pm.iterationData.get(\"routeShortName1\");",
+							"var route2 = pm.iterationData.get(\"routeShortName2\");",
+							"//var route3 = pm.iterationData.get(\"routeShortName3\");",
+							"var destination1 = pm.iterationData.get(\"destination1\");",
+							"//var destination2 = pm.iterationData.get(\"destination2\");",
+							"//var destination3 = pm.iterationData.get(\"destination3\");",
+							"//route1 = route1.toString();",
+							"//route2 = route2.toString();",
+							"//route3 = route3.toString();",
+							"",
+							"if (arrDeptArray.length > 0) {",
+							"//iterate through this and check all",
+							"for (let i = 0; i < arrDeptArray.length; i++) {",
+							"",
+							"    var routeShortName = arrDeptArray[i].routeShortName;",
+							"",
+							"    pm.test(\"Trip \" +i+ \" Arrival Data is realtime OR trip is canceled\", ()=> {",
+							"        if (arrDeptArray[i].predicted==true) {",
+							"            pm.expect(arrDeptArray[i].status).not.equal('CANCELED');",
+							"        }",
+							"        if (arrDeptArray[i].predicted==false) {",
+							"            pm.expect(arrDeptArray[i].status).equal('CANCELED');",
+							"        }",
+							"    });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" stop is \" +stopId, function () {",
+							"        pm.expect(arrDeptArray[i].stopId).to.eql(stopId);",
+							"        });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" routeShortName\", function () {",
+							"        pm.expect(routeShortName).to.be.oneOf([route1, route2, route3]);",
+							"        });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" headsign\", function () {",
+							"        pm.expect(arrDeptArray[i].tripHeadsign).to.be.oneOf([destination1, destination2, destination3]);",
+							"        });",
+							"",
+							"}",
+							"",
+							"var tripNum;",
+							"var today = new Date();",
+							"var realtimeTrips=0;",
+							"var canceledTrips=0;",
+							"console.log(today);",
+							"console.log(\"Stop: \"+arrDeptArray[0].stopId+\" headsign: \"+arrDeptArray[0].tripHeadsign);",
+							"",
+							"for (let i = 0; i < arrDeptArray.length; i++) {   ",
+							"   var arrivalTime;",
+							"   var utcSeconds;",
+							"   var tripDate = new Date(0); ",
+							"   var tripTime;",
+							"   var tripId = arrDeptArray[i].tripId;",
+							"   var route = arrDeptArray[i].routeShortName;",
+							"   var status = arrDeptArray[i].status;",
+							"   ",
+							"   if(arrDeptArray[i].predicted == true) {",
+							"        realtimeTrips = realtimeTrips+1;",
+							"    }",
+							"    if(arrDeptArray[i].status==='CANCELED'){",
+							"        canceledTrips = canceledTrips+1;",
+							"    }",
+							"",
+							"    //test if the trip is using realtime data (predicted == true)",
+							"    if (arrDeptArray[i].predicted == true){",
+							"        if (arrDeptArray[i].predictedArrivalTime > 0) {",
+							"            arrivalTime = ",
+							"                arrDeptArray[i].predictedArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"Trip \"+i+\" predictedArrival: \"+tripTime+\" trip: \" +route+\":\"+tripId);",
+							"            }",
+							"        else {",
+							"            if (arrDeptArray[i].scheduledArrivalTime > 0) {",
+							"            arrivalTime = arrDeptArray[i].scheduledArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"PREDICTED TRUE BUT NO PREDICTED ARRIVAL TIME!\");",
+							"            console.log(\"Trip \"+i+\" scheduledArrival: \"+tripTime+\" trip: \"+route+\":\"+tripId);",
+							"        }}",
+							"    }",
+							"    else {",
+							"        console.log(\"No realtime. Trip \" +i+ \" is status: \" + status + \" trip: \"+route+\":\"+tripId);",
+							"    }",
+							"}}",
+							"else {",
+							"    console.log(\"No Arrivals/Departures returned :(\");",
+							"}",
+							"console.log(\"Total trips: \" +arrDeptArray.length+ \" Realtime: \" +realtimeTrips+ \" Canceled: \" +canceledTrips);",
+							"",
+							"pm.test(\"Most trips are realtime\", function() {",
+							"    pm.expect(realtimeTrips).to.be.greaterThan(arrDeptArray.length/2);",
+							"});",
+							"",
+							"console.log(\"**************** end\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6802ef1a-afb2-4d4d-b42d-d86d0aa90425",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "47060c48-f099-4f9a-bfdd-66442da46fb8",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://hub-mta-{{env}}.camsys-apps.com/transit-services/v2/arrivals-and-departures-for-stop/{{stopId}}.json?key=OBA",
+					"protocol": "https",
+					"host": [
+						"hub-mta-{{env}}",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"transit-services",
+						"v2",
+						"arrivals-and-departures-for-stop",
+						"{{stopId}}.json"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Subway A48N A or C Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f05ed5d1-6383-400d-bed9-49bbf787e661",
+						"exec": [
+							"//this needs some work",
+							"",
+							"var jsonData = pm.response.json();",
+							"var arrDeptArray = jsonData.data.entry.arrivalsAndDepartures;",
+							"var stopId = pm.iterationData.get(\"stopId\");",
+							"var route1 = pm.iterationData.get(\"routeShortName1\");",
+							"var route2 = pm.iterationData.get(\"routeShortName2\");",
+							"var route3 = pm.iterationData.get(\"routeShortName3\");",
+							"var route4 = pm.iterationData.get(\"routeShortName4\");",
+							"var destination1 = pm.iterationData.get(\"destination1\");",
+							"var destination2 = pm.iterationData.get(\"destination2\");",
+							"var destination3 = pm.iterationData.get(\"destination3\");",
+							"",
+							"if (arrDeptArray.length > 0) {",
+							"//iterate through this and check all",
+							"//for (let i = 0; i < arrDeptArray.length; i++) {",
+							"for (let i = 0; i < 2; i++) {",
+							"    pm.test(\"Trip \" +i+ \" Arrival Data is realtime OR trip is canceled\", ()=> {",
+							"        if (arrDeptArray[i].predicted==true) {",
+							"            pm.expect(arrDeptArray[i].status).not.equal('CANCELED');",
+							"        }",
+							"        if (arrDeptArray[i].predicted==false) {",
+							"            pm.expect(arrDeptArray[i].status).equal('CANCELED');",
+							"        }",
+							"    });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" stop is \" +stopId, function () {",
+							"        pm.expect(arrDeptArray[i].stopId).to.eql(stopId);",
+							"        });",
+							"        ",
+							"    pm.test(\"Trip \" +i+ \" headsign is \" +destination, function () {",
+							"        pm.expect(arrDeptArray[i].tripHeadsign).to.be.oneOf([destination1, destination2, destination3]);",
+							"        });",
+							"",
+							"    pm.test(\"Trip \" +i+ \" routeShortName is A or C\", function () {",
+							"        pm.expect(arrDeptArray[i].routeShortName).to.be.oneOf([route1, route2, route3]);",
+							"    });",
+							"}",
+							"",
+							"var tripNum;",
+							"var today = new Date();",
+							"var realtimeTrips=0;",
+							"var canceledTrips=0;",
+							"console.log(today);",
+							"console.log(\"Stop: \"+arrDeptArray[0].stopId+\" headsign: \"+arrDeptArray[0].tripHeadsign);",
+							"",
+							"for (let i = 0; i < arrDeptArray.length; i++) {   ",
+							"   var arrivalTime;",
+							"   var utcSeconds;",
+							"   var tripDate = new Date(0); ",
+							"   var tripTime;",
+							"   var tripId = arrDeptArray[i].tripId;",
+							"   var route = arrDeptArray[i].routeShortName;",
+							"   var status = arrDeptArray[i].status;",
+							"   ",
+							"   if(arrDeptArray[i].predicted == true) {",
+							"        realtimeTrips = realtimeTrips+1;",
+							"    }",
+							"    if(arrDeptArray[i].status==='CANCELED'){",
+							"        canceledTrips = canceledTrips+1;",
+							"    }",
+							"",
+							"    //test if the trip is using realtime data (predicted == true)",
+							"    if (arrDeptArray[i].predicted == true){",
+							"        if (arrDeptArray[i].predictedArrivalTime > 0) {",
+							"            arrivalTime = ",
+							"                arrDeptArray[i].predictedArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"Trip \"+i+\" predictedArrival: \"+tripTime+\" trip: \" +route+\":\"+tripId);",
+							"            }",
+							"        else {",
+							"            if (arrDeptArray[i].scheduledArrivalTime > 0) {",
+							"            arrivalTime = arrDeptArray[i].scheduledArrivalTime;",
+							"            //convert the time to something readable",
+							"            utcSeconds = arrivalTime.toString().substring(0, 10);",
+							"            tripDate.setUTCSeconds(utcSeconds);",
+							"            tripTime = tripDate.toString().substring(16, 24);",
+							"            console.log(\"PREDICTED TRUE BUT NO PREDICTED ARRIVAL TIME!\");",
+							"            console.log(\"Trip \"+i+\" scheduledArrival: \"+tripTime+\" trip: \"+route+\":\"+tripId);",
+							"        }}",
+							"    }",
+							"    else {",
+							"        console.log(\"No realtime. Trip \" +i+ \" is status: \" + status + \" trip: \"+route+\":\"+tripId);",
+							"    }",
+							"}}",
+							"else {",
+							"    console.log(\"No Arrivals/Departures returned :(\");",
+							"}",
+							"console.log(\"Total trips: \" +arrDeptArray.length+ \" Realtime: \" +realtimeTrips+ \" Canceled: \" +canceledTrips);",
+							"",
+							"pm.test(\"Most trips are realtime\", function() {",
+							"    pm.expect(realtimeTrips).to.be.greaterThan(arrDeptArray.length/2);",
+							"});",
+							"",
+							"console.log(\"**************** end\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "70a6bb2d-c56e-43f1-b7e5-5d70ecfe1ed9",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "896bc0b6-9191-49c5-897c-7b645be9bbf0",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://hub-mta-{{env}}.camsys-apps.com/transit-services/v2/arrivals-and-departures-for-stop/{{stopId}}.json?key=OBA",
+					"protocol": "https",
+					"host": [
+						"hub-mta-{{env}}",
+						"camsys-apps",
+						"com"
+					],
+					"path": [
+						"transit-services",
+						"v2",
+						"arrivals-and-departures-for-stop",
+						"{{stopId}}.json"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "OBA"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
